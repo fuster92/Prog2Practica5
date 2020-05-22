@@ -25,17 +25,18 @@ public class Main {
     public static final String ANSI_WHITE = "\u001B[37m";
 
     private static final String TEXTO_MUESTRA_RESULTADO =
-            "Suma recursiva debilitamiento = "+ ANSI_RED + " %d |" + ANSI_RESET +
-            "Suma recursiva fortalecimiento = "+ ANSI_RED + "%d |" + ANSI_RESET +
-            "Suma recursiva division = "+ ANSI_RED + "%d |" + ANSI_RESET +
-            "Suma secuencial = "+ ANSI_RED + "%d" +
-            ANSI_RESET;
+            "Suma debilitamiento = "+ ANSI_YELLOW + " %d " + ANSI_RESET +
+            "| Suma fortalecimiento = "+ ANSI_YELLOW + "%d" + ANSI_RESET +
+            "| Suma division = "+ ANSI_YELLOW + "%d" + ANSI_RESET +
+            "| Suma = "+ ANSI_YELLOW + "%d" + ANSI_RESET + "\n Suma correcta: %s";
     private static final String TEXTO_MUESTRA_TIEMPO =
             "Numero de intentos : %d\n" +
-            "Tiempo recursivo deb = "+ ANSI_RED + "%dns \n" + ANSI_RESET +
-            "Tiempo recursivo fort = "+ ANSI_RED + "%dns \n" + ANSI_RESET +
-            "Tiempo recursivo div = "+ ANSI_RED + "%dns \n" + ANSI_RESET +
-            "Tiempo secuencia = "+ ANSI_RED + "%dns" + ANSI_RESET;
+            "Longitud del vector : %d\n" +
+            "Tiempo deb = "+ ANSI_YELLOW + "%dns \n" + ANSI_RESET +
+            "Tiempo fort = "+ ANSI_YELLOW + "%dns \n" + ANSI_RESET +
+            "Tiempo div = "+ ANSI_YELLOW + "%dns \n" + ANSI_RESET +
+            "Tiempo = "+ ANSI_YELLOW + "%dns" + ANSI_RESET;
+    private static final String MENSAJE_OVERFLOW = "Stack Overflow";
 
     private static long sumaTiempoFort = 0;
     private static long sumaTiempoDeb = 0;
@@ -46,13 +47,6 @@ public class Main {
     private static int maxNumTest;
     private static int maxLongitudVector;
     private static int maxValorNumero;
-
-    /**
-     * Construye un Main
-     */
-    public Main() {
-
-    }
 
     /**
      * Pre: vector.length > 0
@@ -94,24 +88,23 @@ public class Main {
         return sumaParcial;
     }
 
-    public static int sumaImparesMitades(int[] vector){
-        int suma = 0;
-        int puntoMedio = vector.length / 2;
-        //Caso base longitud 1
-        if (puntoMedio == 0 || (puntoMedio == 1 && vector.length == 2)){
-            if (puntoMedio == 0) {
-                //Si ha quedado un trozo de longitud 1
-                suma += ((vector[0] % 2 == 0) ? 0:vector[0]);
-            }
-            if(vector.length == 2){
-                //Si ha quedado un trozo de longitud 2
-                suma += (vector[1] % 2 == 1)? vector[1]:0;
-            }
-            return suma;
+    /**
+     * Pre: vector.length > 0 AND desde >= 0 AND hasta < vector.length
+     * Post: sumaImparesMitad (vector, desde, hasta) =
+     *       SUMA alfa EN [desde, hasta] AND vector[alfa] % 2 = 1.vector[alfa]
+     */
+    public static int sumaImparesMitades(int[] vector,
+                                         int desde,
+                                         int hasta){
+        if (desde == hasta){
+            return (vector[desde] % 2 == 1) ? vector[desde] : 0;
+        } if (hasta - desde == 1){
+            return ((vector[desde] % 2 == 1) ? vector[desde] : 0 )+
+                    ((vector[hasta] % 2 == 1) ? vector[hasta] : 0);
+        } else {
 
-        }else {
-            return sumaImparesMitades(Arrays.copyOfRange(vector, 0, puntoMedio)) +
-                    sumaImparesMitades(Arrays.copyOfRange(vector, puntoMedio, vector.length));
+            return sumaImparesMitades(vector, desde, desde + (hasta - desde ) / 2) +
+                    sumaImparesMitades(vector, desde + ((hasta - desde) / 2) + 1 , hasta);
         }
     }
 
@@ -120,8 +113,8 @@ public class Main {
      */
     public static int sumaImparesBucle(int[] vector){
         int suma = 0;
-        for (int i = 0; i < vector.length; i++){
-            suma += (vector[i] % 2 != 0) ? vector[i] : 0;
+        for (int numero : vector) {
+            suma += (numero % 2 != 0) ? numero : 0;
         }
         return suma;
     }
@@ -154,23 +147,25 @@ public class Main {
         } else {
             //Valores por defecto
             maxNumTest = 100;
-            maxLongitudVector = 1000;
+            maxLongitudVector = 16000;
             maxValorNumero = 100;
         }
-
-
         int [] vector;
         int numeroTest = 0;
         while (numeroTest < maxNumTest) {
             vector = inicializarVector(maxLongitudVector, maxValorNumero);
-            //System.out.println(Arrays.toString(vector));
-            testMetodosCuentaImpares(vector, true);
+            try {
+                testMetodosCuentaImpares(vector, true);
+            } catch (StackOverflowError stackOverflowError) {
+                System.out.println(MENSAJE_OVERFLOW);
+            }
             numeroTest++;
         }
         System.out.println(
                 (String.format(
                         TEXTO_MUESTRA_TIEMPO,
                         maxNumTest,
+                        maxLongitudVector,
                         (sumaTiempoDeb / (maxNumTest)),
                         (sumaTiempoFort / (maxNumTest)),
                         (sumaTiempoDiv / (maxNumTest)),
@@ -181,7 +176,8 @@ public class Main {
      * Test de los métodos cuenta impares
      * @param vector
      */
-    private static void testMetodosCuentaImpares(int[] vector, boolean mostrarResultados) {
+    private static void testMetodosCuentaImpares(int[] vector, boolean mostrarResultados)
+    throws StackOverflowError{
         long start;
 
         int sumaRecursivaDeb;
@@ -192,26 +188,41 @@ public class Main {
         testRealizados++;
         start = System.nanoTime();
         sumaRecursivaDeb = sumaImparesDebPost(vector, 0);
-        sumaTiempoDeb = System.nanoTime() - start;
+        sumaTiempoDeb += System.nanoTime() - start;
 
         start = System.nanoTime();
         sumaRecursivaFort = sumaImparesFortPre(vector, 0, 0);
-        sumaTiempoFort = System.nanoTime() - start;
+        sumaTiempoFort += System.nanoTime() - start;
 
         start = System.nanoTime();
         sumaSecuencial = sumaImparesBucle(vector);
-        sumaTiempoSec = System.nanoTime() - start;
+        sumaTiempoSec += System.nanoTime() - start;
 
         start = System.nanoTime();
-        sumaDivision = sumaImparesMitades(vector);
+        sumaDivision = sumaImparesMitades(vector, 0, vector.length - 1);
         sumaTiempoDiv += System.nanoTime() - start;
+
         if (mostrarResultados) {
+            String mensaje = ANSI_RED + "no" + ANSI_RESET;
+            if (resultadosIguales(sumaDivision, sumaRecursivaDeb, sumaRecursivaFort, sumaSecuencial)){
+                mensaje = ANSI_GREEN + "si" + ANSI_RESET;
+            }
             System.out.println(String.format(
                             TEXTO_MUESTRA_RESULTADO,
                             sumaRecursivaDeb,
                             sumaRecursivaFort,
                             sumaDivision,
-                            sumaSecuencial));
+                            sumaSecuencial,
+                            mensaje));
         }
+    }
+
+    /**
+     * Devuelve verdadero si los 4 digitos son iguales
+     */
+    private static boolean resultadosIguales(int a, int b, int c, int d){
+        return (a == b) &&
+               (b == c) &&
+               (c == d);
     }
 }
