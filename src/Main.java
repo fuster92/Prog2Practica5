@@ -7,7 +7,6 @@
  *
  */
 
-import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -63,12 +62,12 @@ public class Main {
      *      SUMA alfa EN [indice, vector.length - 1] AND vector[alfa]%2=1.vector[alfa]
      */
     public static int sumaImparesDebPost(int[] vector, int indice){
-        if ( vector.length > 0 && indice < vector.length){
-            if (vector[indice] % 2 != 0){
+        if ( vector.length > 0 && indice < vector.length){ //a
+            if (vector[indice] % 2 != 0){                  //b
                 //Si es impar
-                return vector[indice] + sumaImparesDebPost(vector, indice + 1);
-            } else return sumaImparesDebPost(vector, indice + 1);
-        } else return 0; // Si hemos llegado al fin del vector
+                return vector[indice] + sumaImparesDebPost(vector, indice + 1); //c
+            } else return sumaImparesDebPost(vector, indice + 1);               //d
+        } else return 0; // Si hemos llegado al fin del vector                  //e
     }
 
     /**
@@ -98,9 +97,6 @@ public class Main {
                                          int hasta){
         if (desde == hasta){
             return (vector[desde] % 2 == 1) ? vector[desde] : 0;
-        } if (hasta - desde == 1){
-            return ((vector[desde] % 2 == 1) ? vector[desde] : 0 )+
-                    ((vector[hasta] % 2 == 1) ? vector[hasta] : 0);
         } else {
 
             return sumaImparesMitades(vector, desde, desde + (hasta - desde ) / 2) +
@@ -109,9 +105,11 @@ public class Main {
     }
 
     /**
-     * Suma los impares en un bucle
+     * Pre: vector.length > 0
+     * Post: sumaImpares (vector) =
+     *      SUMA alfa EN [0, vector.length - 1] AND vector[alfa]%2=1.vector[alfa]
      */
-    public static int sumaImparesBucle(int[] vector){
+    public static int sumaImparesSecuencial(int[] vector){
         int suma = 0;
         for (int numero : vector) {
             suma += (numero % 2 != 0) ? numero : 0;
@@ -195,7 +193,7 @@ public class Main {
         sumaTiempoFort += System.nanoTime() - start;
 
         start = System.nanoTime();
-        sumaSecuencial = sumaImparesBucle(vector);
+        sumaSecuencial = sumaImparesSecuencial(vector);
         sumaTiempoSec += System.nanoTime() - start;
 
         start = System.nanoTime();
