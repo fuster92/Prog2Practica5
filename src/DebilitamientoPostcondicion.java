@@ -1,3 +1,6 @@
+/**
+ * Clase de encapsulación del método por debilitamiento
+ */
 public class DebilitamientoPostcondicion {
 
     /**

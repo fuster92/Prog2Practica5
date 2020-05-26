@@ -1,3 +1,6 @@
+/**
+ * Clase de encapsulación del método por fortalecimiento
+ */
 public class FortalecimientoPrecondicion {
 
     /**

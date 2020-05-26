@@ -1,5 +1,7 @@
+/**
+ * Clase de encapsulación del método por iteración
+ */
 public class Iterativo {
-
 
     /**
      * Pre: vector.length > 0
